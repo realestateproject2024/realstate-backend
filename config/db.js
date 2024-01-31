@@ -6,8 +6,8 @@ dotenv.config();
 const pool = mysql.createPool({
   host: "localhost",
   user: "root",
-  port: 3001,
-  password: "Real@2024",
+  // port: 3001,
+  password: "",
   database: "realstate",
 });
 
