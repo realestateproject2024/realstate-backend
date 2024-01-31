@@ -11,6 +11,7 @@ const pool = mysql.createPool({
   database: "realstate",
 });
 
+
 // const pool = mysql.createPool({
 //   host: process.env.host,
 //   user: process.env.user,
