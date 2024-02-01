@@ -2,6 +2,7 @@ var jwt = require("jsonwebtoken");
 
 const Admin = require("./adminModel");
 const { userRole } = require("../../helpers/constants/userRole");
+const { secretKeys } = require("../../helpers/constants/dbName");
 
 exports.createUser = async (req, res, next) => {
   const {
@@ -25,7 +26,7 @@ exports.createUser = async (req, res, next) => {
         email,
         role,
       },
-      process.env.AUTH_SECRET_KEY,
+      secretKeys.AUTH_SECRET_KEY,
       { expiresIn: "1h" }
     );
 
@@ -50,7 +51,7 @@ exports.login = async (req, res, next) => {
         email: existingUser.email,
         role: existingUser.role,
       },
-      process.env.AUTH_SECRET_KEY,
+      secretKeys.AUTH_SECRET_KEY,
       { expiresIn: "1h" }
     );
 

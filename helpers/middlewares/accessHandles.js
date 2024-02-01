@@ -1,5 +1,6 @@
 var jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
+const { secretKeys } = require("../constants/dbName");
 dotenv.config();
 
 exports.requireSignin = (req, res, next) => {
@@ -7,7 +8,7 @@ exports.requireSignin = (req, res, next) => {
     if (req.headers["authorization"]?.length > 0) {
       const token = req.headers["authorization"]?.split(" ")[1];
       if (token) {
-        const user = jwt.verify(token, process.env.AUTH_SECRET_KEY);
+        const user = jwt.verify(token, secretKeys.AUTH_SECRET_KEY);
         req.user = user;
         next();
       } else res.status(400).json({ message: "Admin/owner not found" });
