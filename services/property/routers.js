@@ -2,10 +2,9 @@ const express = require("express");
 
 const {
   createProperty,
-  editProperty,
   getAllProperty,
+  editProperty,
   deleteByPropertyId,
-  searchProperty,
 } = require("./controllers");
 const { requireSignin } = require("../../helpers/middlewares/accessHandles");
 
@@ -15,8 +14,8 @@ router
   .route("/")
   .get(getAllProperty)
   .post(requireSignin, createProperty)
-  .put(editProperty);
-router.route("/:id").delete(deleteByPropertyId);
-router.route("/search/").get(searchProperty);
+  .patch(requireSignin, editProperty);
+router.route("/:id").delete(requireSignin, deleteByPropertyId);
+// router.route("/search/").get(searchProperty);
 
 module.exports = router;

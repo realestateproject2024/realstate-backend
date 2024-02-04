@@ -1,99 +1,131 @@
-const db = require("../../config/db");
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+
 const { dbNames } = require("../../helpers/constants/dbName");
+const {
+  propertyStatus,
+  propertyType,
+} = require("../../helpers/constants/localConsts");
 
-class property {
-  constructor(
-    id,
-    name,
-    address,
-    status,
-    description,
-    type,
-    city,
-    district,
-    price,
-    region
-  ) {
-    (this.id = id),
-      (this.name = name),
-      (this.address = address),
-      (this.status = status),
-      (this.description = description),
-      (this.type = type),
-      (this.city = city),
-      (this.district = district),
-      (this.price = price),
-      (this.region = region);
-  }
+const otpSchema = new mongoose.Schema(
+  {
+    typeOfProperty: {
+      type: String,
+      enum: [propertyType.commercial, propertyType.residential],
+      default: propertyType.residential,
+    },
+    propertyTitle: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    price: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    city: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    district: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    address: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    pinCode: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    status: {
+      type: String,
+      enum: [
+        propertyStatus.available,
+        propertyStatus.available,
+        propertyStatus.sold,
+        propertyStatus.hold,
+        propertyStatus.sale,
+      ],
+      default: propertyStatus.available,
+    },
+    region: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    yearOfBuild: {
+      type: Date,
+      required: false,
+      trim: true,
+    },
+    directionFacing: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    bedRooms: {
+      type: Number,
+      required: false,
+      trim: true,
+    },
+    kitchen: {
+      type: Number,
+      required: false,
+      trim: true,
+    },
+    toilets: {
+      type: Number,
+      required: false,
+      trim: true,
+    },
+    lounge: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    elevator: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    area: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    availabilityOfElectricity: {
+      type: Boolean,
+      required: false,
+      dafault: true,
+    },
+    availabilityOfWater: {
+      type: Boolean,
+      required: false,
+      dafault: true,
+    },
+    lastRepairing: {
+      type: Date,
+      required: false,
+      trim: true,
+    },
+    propertyImages: [
+      {
+        type: String,
+        required: false,
+        trim: true,
+      },
+    ],
+  },
+  { timestamps: true }
+);
 
-  async save() {
-    let sql = `INSERT INTO property(
-        name,
-        address,
-        status,
-        description,
-        type,
-        city,
-        district,
-        price,
-        region
-    )VALUES(
-      '${this.name}',
-      '${this.address}',
-      '${this.status}',
-      '${this.description}',
-      '${this.type}',
-      '${this.city}',
-      '${this.district}',
-      '${this.price}',
-      '${this.region}'
-    )
-    `;
-
-    const result = await db.execute(sql);
-    // this.id = result[0].insertId;
-
-    return result;
-  }
-
-  async updateById() {
-    let sql = `UPDATE property SET name='${this.name}', address='${this.address}', status='${this.status}', 
-    description='${this.description}', type='${this.type}', city='${this.city}', district='${this.district}', 
-    price='${this.price}', region='${this.region}' WHERE id='${this.id}'`;
-
-    return db.execute(sql);
-  }
-
-  static async deleteById(id) {
-    let sql = `DELETE FROM products WHERE id=${id};`;
-
-    return db.execute(sql);
-  }
-
-  static async getTotalPropertiesCount() {
-    const sql = `SELECT COUNT(*) FROM ${dbNames.propertyModel}`;
-    return db.execute(sql);
-  }
-
-  static async getAllProperties(startIndex, limit) {
-    let sql = `SELECT * FROM property LIMIT ${startIndex}, ${limit};`;
-
-    return db.execute(sql);
-  }
-
-  static async getSearchedProperties(values, conditions) {
-    const sql = `SELECT * FROM ${dbNames.propertyModel} WHERE ${conditions.join(
-      " AND "
-    )}`;
-
-    return db.execute(sql, values);
-  }
-
-  static async deletePropertyById(id) {
-    let sql = `DELETE FROM property WHERE id=${id};`;
-
-    return db.execute(sql);
-  }
-}
+const property = mongoose.model(dbNames.propertyModel, otpSchema);
 
 module.exports = property;

@@ -1,70 +1,69 @@
+const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
-const db = require("../../config/db");
+const { userRole } = require("../../helpers/constants/localConsts");
 const { dbNames } = require("../../helpers/constants/dbName");
 
-class admin {
-  constructor(id, email, password, role) {
-    (this.id = id),
-      (this.email = email),
-      (this.password = password),
-      (this.role = role);
+const adminSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    password: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    role: {
+      type: String,
+      enum: [userRole.admin, userRole.executive],
+      default: userRole.executive,
+    },
+  },
+  { timestamps: true }
+);
+
+adminSchema.pre("save", async function (next) {
+  if (this.isModified("password")) {
+    this.password = await bcrypt.hash(this.password, 12);
   }
 
-  async save() {
-    // Hash the password before saving
-    const hashedPassword = await bcrypt.hash(this.password, 10);
+  next();
+});
 
-    const sql = `INSERT INTO ${dbNames.adminModel}(
-        email, password, role
-    )VALUES(
-      '${this.email}',
-      '${hashedPassword}',
-      '${this.role}'
-    )
-    `;
-
-    const result = await db.execute(sql);
-
-    return result;
-  }
-
-  static async getUserByEmailAndPassword(email, password) {
+adminSchema.methods = {
+  authenticate: async function (password) {
     try {
-      let sql = `SELECT * FROM ${dbNames.adminModel} WHERE email='${email}'`;
-
-      const [rows, fields] = await db.execute(sql);
-
-      if (rows.length === 1) {
-        // Compare hashed passwords
-        const isPasswordMatch = await bcrypt.compare(
-          password,
-          rows[0].password
-        );
-
-        if (isPasswordMatch) {
-          return rows[0]; // Passwords match, return the user
-        }
-      }
-
-      return null; // No matching user or password doesn't match
+      return await bcrypt.compare(password, this.password);
     } catch (error) {
-      console.error("Error retrieving user:", error.message);
-      throw error; // Re-throw the error to indicate failure
+      console.error("Error during password comparison:", error);
+      throw new Error("Authentication failed");
     }
-  }
+  },
 
-  static async getUserById(id) {
-    let sql = `SELECT * FROM ${dbNames.adminModel} WHERE id=${id};`;
+  generateJWT: function () {
+    const token = jwt.sign(
+      {
+        _id: this._id,
+        email: this.email,
+        phone: this.phone,
+        role: this.role,
+      },
+      process.env.AUTH_SECRET_KEY,
+      { expiresIn: "1d" }
+    );
+    return token;
+  },
+};
 
-    return db.execute(sql);
-  }
+const Admin = mongoose.model(dbNames.adminModel, adminSchema);
 
-  static async deleteUserById(id) {
-    let sql = `DELETE FROM ${dbNames.adminModel} WHERE id=${id};`;
-
-    return db.execute(sql);
-  }
-}
-
-module.exports = admin;
+module.exports = Admin;

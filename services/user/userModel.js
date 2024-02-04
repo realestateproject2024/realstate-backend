@@ -1,82 +1,104 @@
-const db = require("../../config/db");
+const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+
+const { userRole } = require("../../helpers/constants/localConsts");
 const { dbNames } = require("../../helpers/constants/dbName");
 
-class user {
-  constructor(
-    id,
-    name,
-    dob,
-    phone,
-    employmentType,
-    employerName,
-    dateOfJoiing,
-    basicSalary,
-    totalSalary
-  ) {
-    (this.id = id),
-      (this.name = name),
-      (this.dob = dob),
-      (this.phone = phone),
-      (this.employmentType = employmentType),
-      (this.employerName = employerName),
-      (this.dateOfJoiing = dateOfJoiing),
-      (this.basicSalary = basicSalary),
-      (this.totalSalary = totalSalary);
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    dob: {
+      type: Date,
+      required: true,
+      trim: true,
+    },
+    phone: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    password: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    employmentType: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    employerName: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    dateOfJoiing: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    basicSalary: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    totalSalary: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    role: {
+      type: String,
+      default: userRole.user,
+      required: true,
+    },
+  },
+  { timestamps: true }
+);
+
+userSchema.pre("save", async function (next) {
+  if (this.isModified("password")) {
+    this.password = await bcrypt.hash(this.password, 12);
   }
 
-  async save() {
-    let sql = `INSERT INTO ${dbNames.userModel}(
-        name,
-        dob,
-        phone,
-        employmentType,
-        employerName,
-        dateOfJoiing,
-        basicSalary,
-        totalSalary
-    ) VALUES (?, STR_TO_DATE(?, '%Y-%m-%d'), ?, ?, ?, ?, ?, ?)`;
+  next();
+});
 
-    const values = [
-      this.name,
-      this.dob, // Assuming this.dob is a string in 'YYYY-MM-DD' format
-      this.phone,
-      this.employmentType,
-      this.employerName,
-      this.dateOfJoiing, // Assuming dateOfJoiing is a JavaScript Date object
-      this.basicSalary,
-      this.totalSalary,
-    ];
+userSchema.methods = {
+  authenticate: async function (password) {
+    try {
+      return await bcrypt.compare(password, this.password);
+    } catch (error) {
+      console.error("Error during password comparison:", error);
+      throw new Error("Authentication failed");
+    }
+  },
 
-    const result = await db.execute(sql, values);
+  generateJWT: function () {
+    const token = jwt.sign(
+      {
+        _id: this._id,
+        email: this.email,
+        phone: this.phone,
+        role: this.role,
+      },
+      process.env.AUTH_SECRET_KEY,
+      { expiresIn: "1d" }
+    );
+    return token;
+  },
+};
 
-    return result;
-  }
+const User = mongoose.model(dbNames.userModel, userSchema);
 
-  async updateById() {
-    let sql = `UPDATE ${dbNames.userModel} SET name='${this.name}', dob='${this.dob}', phone='${this.phone}', 
-    employmentType='${this.employmentType}', employerName='${this.employerName}', dateOfJoiing='${this.dateOfJoiing}', 
-    basicSalary='${this.basicSalary}', totalSalary='${this.totalSalary}' WHERE id='${this.id}'`;
-
-    return db.execute(sql);
-  }
-
-  static async getUserByMobile(phone) {
-    let sql = `SELECT * FROM ${dbNames.userModel} WHERE phone=${phone};`;
-
-    return db.execute(sql);
-  }
-
-  static async getUserById(id) {
-    let sql = `SELECT * FROM ${dbNames.userModel} WHERE id=${id};`;
-
-    return db.execute(sql);
-  }
-
-  static async deleteUserById(id) {
-    let sql = `DELETE FROM ${dbNames.userModel} WHERE id=${id};`;
-
-    return db.execute(sql);
-  }
-}
-
-module.exports = user;
+module.exports = User;

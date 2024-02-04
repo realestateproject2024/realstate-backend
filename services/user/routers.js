@@ -1,18 +1,24 @@
 const express = require("express");
+const router = express.Router();
+
 const {
+  createNewUser,
   signUp,
-  validateUser,
-  verifyOtp,
   getUserById,
   updateUserById,
   deleteUserById,
+  verifyOtp,
 } = require("./controllers");
-const router = express.Router();
 
 router.route("/signUp").post(signUp);
 router.route("/verifyOtp").post(verifyOtp);
 
-router.route("/").post(validateUser).put(updateUserById);
-router.route("/:id").get(getUserById).delete(deleteUserById);
+router.route("/").post(createNewUser);
+
+router
+  .route("/:id")
+  .patch(updateUserById)
+  .get(getUserById)
+  .delete(deleteUserById);
 
 module.exports = router;

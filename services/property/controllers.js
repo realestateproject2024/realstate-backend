@@ -1,98 +1,58 @@
 const fs = require("fs");
 const path = require("path");
 
-const Property = require("./propertyModel");
-const PropertyImage = require("./propertyImagesModel");
+const PropertyModel = require("./propertyModel");
+const { userRole } = require("../../helpers/constants/localConsts");
 
 exports.getAllProperty = async (req, res) => {
   const { page, count } = req.query;
   try {
-    const limit = count || 2;
+    const limit = count || 15;
     const startIndex = (Number(page) - 1) * limit;
 
-    let total = await Property.getTotalPropertiesCount();
+    const total = await PropertyModel.countDocuments({});
 
-    if (total?.length > 0 && total[0]?.length > 0) {
-      total = total[0][0]["COUNT(*)"];
-    } else total = 0;
+    const propertyList = await PropertyModel.find()
+      .sort({ _id: -1 })
+      .limit(limit)
+      .skip(startIndex);
 
-    let propertyList = await Property.getAllProperties(startIndex, limit);
-    propertyList = propertyList[0];
-
-    let allPropertyList = [];
-
-    const promises = propertyList.map(async (property) => {
-      const fetchedPropertyImage = await PropertyImage.getByPropertyImagesId(
-        property.id
-        // "199"
-      );
-
-      allPropertyList.push({
-        ...property,
-        images: fetchedPropertyImage[0],
-      });
-    });
-
-    await Promise.all(promises);
-
-    res.status(200).send({
-      data: allPropertyList,
+    res.json({
+      data: propertyList,
       currentPage: Number(page),
       numberOfPages: Math.ceil(total / limit),
     });
   } catch (error) {
-    // Handle errors appropriately
     console.error("Error:", error);
     res.status(400).send("Internal Server Error: " + error.message);
   }
 };
 
 exports.createProperty = async (req, res, next) => {
-  const {
-    id = null,
-    name = null,
-    address = null,
-    status = null,
-    description = null,
-    type,
-    city = null,
-    district = null,
-    price = null,
-    region = null,
-    property_image = null,
-  } = req.body;
-
+  const { propertyImages } = req.body;
   try {
-    let property = new Property(
-      id,
-      name,
-      address,
-      status,
-      description,
-      type,
-      city,
-      district,
-      price,
-      region
-    );
+    if (req?.user?.role == userRole.admin) {
+      let imagePathArray = [];
+      let response = createPropertyImage(propertyImages, imagePathArray);
 
-    if (req.user.role != "admin") return res.status(403).send({message: "Not authorized"});
+      if (response) {
+        response = {
+          ...req.body,
+          propertyImages: imagePathArray,
+        };
 
-    const propertyId = await property.save();
+        response = new PropertyModel(response);
+        await response.save();
 
-    let propertyImageList = await createPropertyImage(
-      id,
-      property_image,
-      propertyId[0].insertId
-    );
-
-    property = {
-      ...property,
-      id: propertyId[0].insertId,
-      images: propertyImageList,
-    };
-
-    res.status(201).send(property);
+        res.status(200).send(response);
+      } else {
+        res
+          .status(404)
+          .send({ message: "Failed to add property. Please trt again later" });
+      }
+    } else {
+      res.status(403).send({ message: "Unauthorized request" });
+    }
   } catch (error) {
     res.status(404).send({
       message: "Failed to create property. Error details: " + error.message,
@@ -101,48 +61,65 @@ exports.createProperty = async (req, res, next) => {
 };
 
 exports.editProperty = async (req, res, next) => {
-  const {
-    id = null,
-    name = null,
-    address = null,
-    status = null,
-    description = null,
-    type,
-    city = null,
-    district = null,
-    price = null,
-    region = null,
-    property_image = null,
-  } = req.body;
-
   try {
-    let property = new Property(
-      id,
-      name,
-      address,
-      status,
-      description,
-      type,
-      city,
-      district,
-      price,
-      region
-    );
+    if (req?.user?.role != userRole.admin)
+      return res.status(403).send({ message: "Unauthorized request" });
 
-    await property.updateById();
+    if (req.body?.propertyImages && req.body.propertyImages?.length > 0) {
+      const existingProperty = await PropertyModel.findById(req.body._id);
 
-    let propertyImageList = [];
+      let response = false;
 
-    if (property_image?.length > 0) {
-      propertyImageList = await editPropertyImage(0, property_image, id);
+      if (
+        existingProperty?.propertyImages &&
+        existingProperty.propertyImages?.length > 0
+      ) {
+        response = deletePropertyImages(existingProperty?.propertyImages);
+      }
+
+      if (response) {
+        let imagePathArray = [];
+        response = createPropertyImage(
+          req.body?.propertyImages,
+          imagePathArray
+        );
+
+        if (response) {
+          response = {
+            ...req.body,
+            propertyImages: imagePathArray,
+          };
+
+          const updatedProperty = await PropertyModel.findByIdAndUpdate(
+            req.body._id,
+            response,
+            {
+              new: true,
+            }
+          );
+
+          res.status(200).send(updatedProperty);
+        } else {
+          return res
+            .status(404)
+            .send({ message: "Failed to add new images. Please try again" });
+        }
+      } else {
+        return res.status(404).send({
+          message: "Failed to remove existing images. Please try again",
+        });
+      }
+    } else {
+      const updatedProperty = await PropertyModel.findByIdAndUpdate(
+        req.body._id,
+        req.body,
+        {
+          new: true,
+        }
+      );
+
+      res.status(200).send({ updatedProperty });
     }
-
-    property = {
-      ...property,
-      images: propertyImageList,
-    };
-
-    res.status(201).send(property);
   } catch (error) {
     res.status(404).send({
       message: "Failed to update property. Error details: " + error.message,
@@ -153,11 +130,17 @@ exports.editProperty = async (req, res, next) => {
 exports.deleteByPropertyId = async (req, res, next) => {
   const { id } = req.params;
   try {
-    await deletePropertyImages(id);
+    if (req?.user?.role != userRole.admin)
+      return res.status(403).send({ message: "Unauthorized request" });
 
-    await PropertyImage.deleteByPropertyId(id);
+    const deletedProperty = await PropertyModel.findByIdAndDelete(id);
 
-    await Property.deletePropertyById(id);
+    if (
+      deletedProperty?.propertyImages &&
+      deletedProperty.propertyImages?.length > 0
+    ) {
+      deletePropertyImages(deletedProperty?.propertyImages);
+    }
 
     res.status(200).send({ message: "Property deleted successfully" });
   } catch (error) {
@@ -206,7 +189,7 @@ exports.searchProperty = async (req, res) => {
   }
 };
 
-const createPropertyImage = async (id, property_image, propertyId) => {
+const createPropertyImage = (imagesArray, pathArray) => {
   const curPath = path.resolve(__dirname);
   const rootPath = path.join(curPath, "../../");
 
@@ -222,72 +205,33 @@ const createPropertyImage = async (id, property_image, propertyId) => {
     fs.mkdirSync(dir);
   }
 
-  let propertyImageList = [];
-
-  for (let i = 0; i < property_image.length; i++) {
+  for (let i = 0; i < imagesArray.length; i++) {
     const imageName =
       Math.round(Math.random() * 10000).toString() + "d" + Date.now() + ".jpg";
 
-    let propertyImage = new PropertyImage(
-      id,
-      "files/property/" + imageName,
-      propertyId
-    );
+    pathArray.push("files/property/" + imageName);
 
-    const propertyImageId = await propertyImage.save();
-
-    const img = property_image[i].replace(/^[^,]+,/, "");
+    const img = imagesArray[i].replace(/^[^,]+,/, "");
 
     fs.writeFile(dir + imageName, img, { encoding: "base64" }, (error) => {
       if (error) {
-        return res.status(400).send({
-          message:
-            "Error in saving property image. Error details: " + error.message,
-        });
+        return false;
       }
     });
-
-    propertyImage = {
-      id: propertyImageId[0].insertId,
-      image: "files/property/" + imageName,
-    };
-
-    propertyImageList.push(propertyImage);
   }
 
-  return propertyImageList;
+  return true;
 };
 
-const editPropertyImage = async (id, property_image, propertyId) => {
-  await deletePropertyImages(propertyId);
-
-  let propertyImageList = await createPropertyImage(
-    id,
-    property_image,
-    propertyId
-  );
-
-  return propertyImageList;
-};
-
-const deletePropertyImages = async (propertyId) => {
+const deletePropertyImages = async (imagesArray) => {
   const curPath = path.resolve(__dirname);
   const rootPath = path.join(curPath, "../../");
 
-  let fetchedPropertyImage = await PropertyImage.getByPropertyImagesId(
-    propertyId
-  );
-
-  fetchedPropertyImage = fetchedPropertyImage[0];
-
-  for (let i = 0; i < fetchedPropertyImage.length; i++) {
-    PropertyImage.deleteByPropertyId(propertyId);
-    try {
-      fs.unlink(rootPath + fetchedPropertyImage[i].image, function (err) {
-        if (err) console.log(err);
-      });
-    } catch (error) {
-      return res.status(404).send(error);
-    }
+  for (let i = 0; i < imagesArray.length; i++) {
+    fs.unlink(rootPath + imagesArray[i], function (err) {
+      if (err) return false;
+    });
   }
+
+  return true;
 };

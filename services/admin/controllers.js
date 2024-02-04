@@ -1,66 +1,57 @@
 var jwt = require("jsonwebtoken");
 
-const Admin = require("./adminModel");
-const { userRole } = require("../../helpers/constants/userRole");
+const AdminModel = require("./adminModel");
+
 const { secretKeys } = require("../../helpers/constants/dbName");
 
 exports.createUser = async (req, res, next) => {
-  const {
-    id = null,
-    email = null,
-    password = null,
-    role = userRole.executive,
-  } = req.body;
   try {
-    const existingUser = await Admin.getUserByEmailAndPassword(email, password);
-    if (existingUser != null)
-      return res.status(400).send({ message: "User already exists" });
+    const exixtingUser = await AdminModel.findOne({ email: req.body.email });
 
-    const user = new Admin(id, email, password, role);
+    if (exixtingUser != null) {
+      return res.status(404).send({ message: "User already exists" });
+    }
 
-    let response = await user.save();
+    const user = new AdminModel(req.body);
 
-    const token = jwt.sign(
-      {
-        id: response[0]?.insertId,
-        email,
-        role,
-      },
-      secretKeys.AUTH_SECRET_KEY,
-      { expiresIn: "1h" }
-    );
+    await user.save();
 
-    return res
-      .status(201)
-      .send({ id: response[0]?.insertId, email, role, token });
+    res.status(200).json({
+      user: user,
+      token: user.generateJWT(),
+      message: "Admin created successfully",
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
 
 exports.login = async (req, res, next) => {
-  const { email, password } = req.body;
   try {
-    const existingUser = await Admin.getUserByEmailAndPassword(email, password);
-    if (existingUser == null)
-      return res.status(400).send({ message: "User not found" });
+    const existingUser = await AdminModel.findOne({ email: req.body.email });
 
-    const token = jwt.sign(
-      {
-        id: existingUser.id,
-        email: existingUser.email,
-        role: existingUser.role,
-      },
-      secretKeys.AUTH_SECRET_KEY,
-      { expiresIn: "1h" }
-    );
+    if (existingUser == null) {
+      return res.status(404).send({ message: "User already exists" });
+    }
 
-    const response = {
-      ...existingUser,
-      token,
-    };
+    let result = null;
 
-    return res.status(201).send(response);
+    if (await existingUser.authenticate(req.body.password)) {
+      const token = existingUser.generateJWT();
+      result = {
+        user: existingUser,
+        token,
+        message: "User login successfully",
+      };
+    } else {
+      result = {
+        user: null,
+        token: null,
+        message: "Invalid user credentials",
+      };
+    }
+
+    res.status(200).json(result);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
