@@ -5,7 +5,7 @@ const PropertyModel = require("./propertyModel");
 const { userRole } = require("../../helpers/constants/localConsts");
 
 exports.getAllProperty = async (req, res) => {
-  const { page, count } = req.query;
+  const { page = 1, count } = req.query;
   try {
     const limit = count || 15;
     const startIndex = (Number(page) - 1) * limit;
