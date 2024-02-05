@@ -20,10 +20,10 @@ app.use("/", (req, res) => {
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () =>
-  console.log(`Database connected to ${PORT} successfully.`)
+  console.log(`Server connected to ${PORT} successfully.`)
 );
 
 mongoose
   .connect(process.env.MONGO_CONNECTION_URL)
-  .then((res) => console.log("Connect to MongoDB."))
+  .then((res) => console.log("Database connection successful."))
   .catch((error) => console.log("Error while connecting to database: ", error));

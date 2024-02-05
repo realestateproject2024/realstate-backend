@@ -17,7 +17,7 @@ exports.getAllProperty = async (req, res) => {
       .limit(limit)
       .skip(startIndex);
 
-    res.json({
+    res.status(200).send({
       data: propertyList,
       currentPage: Number(page),
       numberOfPages: Math.ceil(total / limit),
@@ -102,7 +102,7 @@ exports.editProperty = async (req, res, next) => {
         } else {
           return res
             .status(404)
-            .send({ message: "Failed to add new images. Please try again" });
+            .send({ message: "Failed to upload new images. Please try again" });
         }
       } else {
         return res.status(404).send({
@@ -154,36 +154,64 @@ exports.searchProperty = async (req, res) => {
     type = null,
     city = null,
     district = null,
-    price = null,
+    maxPrice = null,
+    minPrice = null,
     region = null,
+    page = null,
+    count = null,
   } = req.query;
 
   try {
-    const userInput = {
-      address,
-      type,
-      city,
-      district,
-      price,
-      region,
-    };
+    const pageNo = parseInt(page) || 1;
+    const limit = parseInt(count) || 10;
 
-    let conditions = [];
-    let values = [];
+    const startIndex = (pageNo - 1) * limit;
 
-    Object.keys(userInput).forEach((field) => {
-      if (userInput[field] !== null && userInput[field].length > 0) {
-        conditions.push(`${field} LIKE ?`);
-        values.push(`%${userInput[field].replace("_partial_", "")}%`);
+    const query = {};
+
+    if (type) {
+      query.typeOfProperty = { $regex: new RegExp(type, "i") };
+    }
+
+    if (address) {
+      query.address = { $regex: new RegExp(address, "i") };
+    }
+
+    if (city) {
+      query.city = { $regex: new RegExp(city, "i") };
+    }
+
+    if (district) {
+      query.district = { $regex: new RegExp(district, "i") };
+    }
+
+    if (maxPrice || minPrice) {
+      query.price = {};
+
+      if (maxPrice) {
+        query.price.$lte = parseFloat(maxPrice);
       }
+
+      if (minPrice) {
+        query.price.$gte = minPrice;
+      }
+    }
+
+    if (region) {
+      query.region = { $regex: new RegExp(region, "i") };
+    }
+
+    const totalCount = await PropertyModel.countDocuments(query);
+
+    const propertyList = await PropertyModel.find(query)
+      .skip(startIndex)
+      .limit(limit);
+
+    res.status(200).send({
+      data: propertyList,
+      currentPage: pageNo,
+      numberOfPages: Math.ceil(totalCount / limit),
     });
-
-    const searchedData = await Property.getSearchedProperties(
-      values,
-      conditions
-    );
-
-    res.status(200).send(searchedData);
   } catch (error) {
     res.status(400).send("Error: " + error.message);
   }

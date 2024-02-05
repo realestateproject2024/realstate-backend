@@ -31,7 +31,7 @@ exports.login = async (req, res, next) => {
     const existingUser = await AdminModel.findOne({ email: req.body.email });
 
     if (existingUser == null) {
-      return res.status(404).send({ message: "User already exists" });
+      return res.status(404).send({ message: "User not found" });
     }
 
     let result = null;

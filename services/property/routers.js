@@ -5,6 +5,7 @@ const {
   getAllProperty,
   editProperty,
   deleteByPropertyId,
+  searchProperty,
 } = require("./controllers");
 const { requireSignin } = require("../../helpers/middlewares/accessHandles");
 
@@ -16,6 +17,6 @@ router
   .post(requireSignin, createProperty)
   .patch(requireSignin, editProperty);
 router.route("/:id").delete(requireSignin, deleteByPropertyId);
-// router.route("/search/").get(searchProperty);
+router.route("/search/").get(searchProperty);
 
 module.exports = router;

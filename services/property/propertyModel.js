@@ -7,7 +7,7 @@ const {
   propertyType,
 } = require("../../helpers/constants/localConsts");
 
-const otpSchema = new mongoose.Schema(
+const propertySchema = new mongoose.Schema(
   {
     typeOfProperty: {
       type: String,
@@ -20,7 +20,7 @@ const otpSchema = new mongoose.Schema(
       trim: true,
     },
     price: {
-      type: String,
+      type: Number,
       required: false,
       trim: true,
     },
@@ -126,6 +126,6 @@ const otpSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const property = mongoose.model(dbNames.propertyModel, otpSchema);
+const property = mongoose.model(dbNames.propertyModel, propertySchema);
 
 module.exports = property;
