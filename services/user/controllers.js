@@ -50,7 +50,7 @@ exports.getUserById = async (req, res) => {
   try {
     const user = await UserModel.findById(id);
 
-    res.status(201).json(user);
+    res.status(200).json(user);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -106,7 +106,7 @@ exports.updateUserById = async (req, res) => {
       new: true,
     });
 
-    res.status(201).json(updatedUser);
+    res.status(200).json(updatedUser);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -117,7 +117,7 @@ exports.deleteUserById = async (req, res) => {
   try {
     await UserModel.findByIdAndDelete(id);
 
-    res.status(201).json({ message: "User deleted successfully" });
+    res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

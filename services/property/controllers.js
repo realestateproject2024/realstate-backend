@@ -54,7 +54,7 @@ exports.createProperty = async (req, res, next) => {
       res.status(403).send({ message: "Unauthorized request" });
     }
   } catch (error) {
-    res.status(404).send({
+    res.status(400).send({
       message: "Failed to create property. Error details: " + error.message,
     });
   }
@@ -121,7 +121,7 @@ exports.editProperty = async (req, res, next) => {
       res.status(200).send({ updatedProperty });
     }
   } catch (error) {
-    res.status(404).send({
+    res.status(400).send({
       message: "Failed to update property. Error details: " + error.message,
     });
   }
@@ -144,7 +144,7 @@ exports.deleteByPropertyId = async (req, res, next) => {
 
     res.status(200).send({ message: "Property deleted successfully" });
   } catch (error) {
-    res.status(500).send("Internal Server Error: " + error.message);
+    res.status(400).send("Failed to delete: " + error.message);
   }
 };
 
