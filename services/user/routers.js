@@ -8,12 +8,14 @@ const {
   updateUserById,
   deleteUserById,
   verifyOtp,
+  loginUser,
 } = require("./controllers");
 
 router.route("/signUp").post(signUp);
 router.route("/verifyOtp").post(verifyOtp);
 
-router.route("/").post(createNewUser);
+router.route("/register").post(createNewUser);
+router.route("/login").post(loginUser);
 
 router
   .route("/:id")

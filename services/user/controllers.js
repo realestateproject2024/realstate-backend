@@ -2,8 +2,15 @@ const UserModel = require("./userModel");
 const OTPModel = require("./otpModel");
 
 exports.signUp = async (req, res, next) => {
-  const { phone } = req.body;
+  const { phone, email } = req.body;
   try {
+    const existingUser = await UserModel.findOne({
+      $or: [{ phone }, { email }],
+    });
+
+    if (existingUser != null)
+      return res.status(403).send({ message: "User already exists" });
+
     // let otp = Math.floor(100000 + Math.random() * 900000);
     let otp = 123456;
 
@@ -16,7 +23,7 @@ exports.signUp = async (req, res, next) => {
 
     return res.status(201).send({ message: "OTP send successfully!" });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ message: error.message });
   }
 };
 
@@ -41,7 +48,7 @@ exports.verifyOtp = async (req, res) => {
       return res.status(404).send({ message: "Invalid Otp!" });
     }
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ message: error.message });
   }
 };
 
@@ -52,12 +59,41 @@ exports.getUserById = async (req, res) => {
 
     res.status(200).json(user);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.loginUser = async (req, res) => {
+  const { phone, email, password } = req.body;
+  try {
+    const existingUser = await UserModel.findOne({
+      $or: [{ phone }, { email }],
+    });
+
+    if (existingUser == null)
+      return res.status(404).json({ message: "User not found" });
+
+    if (await existingUser.authenticate(password)) {
+      const token = existingUser.generateJWT();
+      res.status(200).send({
+        user: existingUser,
+        token,
+        message: "User login successfully",
+      });
+    } else {
+      res.status(401).send({
+        user: null,
+        token: null,
+        message: "Invalid user credentials",
+      });
+    }
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 };
 
 exports.createNewUser = async (req, res) => {
-  const { phone, email, password } = req.body;
+  const { phone, email } = req.body;
 
   try {
     const existingUser = await UserModel.findOne({
@@ -66,20 +102,7 @@ exports.createNewUser = async (req, res) => {
     let result = null;
 
     if (existingUser != null) {
-      if (await existingUser.authenticate(password)) {
-        const token = existingUser.generateJWT();
-        result = {
-          user: existingUser,
-          token,
-          message: "User login successfully",
-        };
-      } else {
-        result = {
-          user: null,
-          token: null,
-          message: "Invalid user credentials",
-        };
-      }
+      return res.status(403).json({ message: "User already exist" });
     } else {
       const newUser = new UserModel(req.body);
 
@@ -108,7 +131,7 @@ exports.updateUserById = async (req, res) => {
 
     res.status(200).json(updatedUser);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ message: error.message });
   }
 };
 
@@ -119,6 +142,6 @@ exports.deleteUserById = async (req, res) => {
 
     res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ message: error.message });
   }
 };

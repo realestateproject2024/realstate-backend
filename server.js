@@ -20,7 +20,7 @@ app.use("/", (req, res) => {
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () =>
-  console.log(`Server connected to ${PORT} successfully.`)
+  console.log(`Server connected to port ${PORT} successfully.`)
 );
 
 mongoose
