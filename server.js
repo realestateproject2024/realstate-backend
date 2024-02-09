@@ -13,12 +13,11 @@ app.use("/user", require("./services/user/routers"));
 app.use("/property", require("./services/property/routers"));
 app.use("/admin", require("./services/admin/routers"));
 
-app.use("/property/images", express.static("files/property"));
+app.use("/files/property", express.static("files/property"));
 
 app.use("/", (req, res) => {
   res.send("Backend server is running.");
 });
-
 
 const PORT = process.env.PORT || 3001;
 
