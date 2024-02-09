@@ -148,6 +148,20 @@ exports.deleteByPropertyId = async (req, res, next) => {
   }
 };
 
+exports.getPropertyById = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    // if (req?.user?.role != userRole.admin)
+    //   return res.status(403).send({ message: "Unauthorized request" });
+
+    const fetchedProperty = await PropertyModel.findById(id);
+
+    res.status(200).send(fetchedProperty);
+  } catch (error) {
+    res.status(400).send("Failed to delete: " + error.message);
+  }
+};
+
 exports.searchProperty = async (req, res) => {
   const {
     address = null,
