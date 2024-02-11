@@ -12,6 +12,7 @@ app.use(cors());
 app.use("/user", require("./services/user/routers"));
 app.use("/property", require("./services/property/routers"));
 app.use("/admin", require("./services/admin/routers"));
+app.use("/bank", require("./services/bank/routers"));
 
 app.use("/files/property", express.static("files/property"));
 
