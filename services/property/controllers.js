@@ -31,27 +31,26 @@ exports.getAllProperty = async (req, res) => {
 exports.createProperty = async (req, res, next) => {
   const { propertyImages } = req.body;
   try {
-    if (req?.user?.role == userRole.admin) {
-      let imagePathArray = [];
-      let response = createPropertyImage(propertyImages, imagePathArray);
+    // if (req?.user?.role != userRole.admin)
+    //   res.status(403).send({ message: "Unauthorized request" });
 
-      if (response) {
-        response = {
-          ...req.body,
-          propertyImages: imagePathArray,
-        };
+    let imagePathArray = [];
+    let response = createPropertyImage(propertyImages, imagePathArray);
 
-        response = new PropertyModel(response);
-        await response.save();
+    if (response) {
+      response = {
+        ...req.body,
+        propertyImages: imagePathArray,
+      };
 
-        res.status(200).send(response);
-      } else {
-        res
-          .status(404)
-          .send({ message: "Failed to add property. Please trt again later" });
-      }
+      response = new PropertyModel(response);
+      await response.save();
+
+      res.status(200).send(response);
     } else {
-      res.status(403).send({ message: "Unauthorized request" });
+      res
+        .status(404)
+        .send({ message: "Failed to add property. Please trt again later" });
     }
   } catch (error) {
     res.status(400).send({

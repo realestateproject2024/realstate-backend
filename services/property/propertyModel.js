@@ -100,6 +100,117 @@ const propertySchema = new mongoose.Schema(
       required: false,
       trim: true,
     },
+    propertyAge: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    propertySpecialDeck: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    propertyRole: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    propertyDirection: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    propertySanitation: {
+      type: Boolean,
+      required: true,
+      default: true,
+      trim: true,
+    },
+    propertyLoungeStaircase: {
+      type: Boolean,
+      required: true,
+      default: true,
+      trim: true,
+    },
+    propertyDriverRoom: {
+      type: Boolean,
+      required: true,
+      default: true,
+      trim: true,
+    },
+    propertyCourtyard: {
+      type: Boolean,
+      required: true,
+      default: true,
+      trim: true,
+    },
+    propertyMaidsRoom: {
+      type: Boolean,
+      required: true,
+      default: true,
+      trim: true,
+    },
+    propertyRooms: {
+      type: Number,
+      required: true,
+      default: 0,
+      trim: true,
+    },
+    propertyLength: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    propertyDisplay: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    propertyfeatured: {
+      type: Boolean,
+      required: true,
+      default: false,
+      trim: true,
+    },
+    amenities: [
+      {
+        type: String,
+        required: false,
+        trim: true,
+      },
+    ],
+    propertyDateAdded: {
+      type: Date,
+      required: false,
+      default: new Date(),
+      trim: true,
+    },
+    propertyLastUpdate: {
+      type: Date,
+      required: false,
+      trim: true,
+    },
+    propertyListingId: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    propertyAdvertisingLicense: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    propertyViews: {
+      type: Number,
+      required: false,
+      default: 0,
+      trim: true,
+    },
+    propertyCarEntance: {
+      type: String,
+      required: false,
+      trim: true,
+    },
     availabilityOfElectricity: {
       type: Boolean,
       required: false,
@@ -112,6 +223,15 @@ const propertySchema = new mongoose.Schema(
     },
     lastRepairing: {
       type: Date,
+      required: false,
+      trim: true,
+    },
+    propertyDescription: {
+      type: String,
+      required: false,
+    },
+    propertyNeighborhood: {
+      type: String,
       required: false,
       trim: true,
     },
