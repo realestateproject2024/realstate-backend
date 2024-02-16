@@ -24,7 +24,9 @@ exports.getAllProperty = async (req, res) => {
     });
   } catch (error) {
     console.error("Error:", error);
-    res.status(400).send("Internal Server Error: " + error.message);
+    res
+      .status(400)
+      .send({ message: "Internal Server Error: " + error.message });
   }
 };
 
@@ -61,13 +63,13 @@ exports.createProperty = async (req, res, next) => {
 
 exports.editProperty = async (req, res, next) => {
   try {
-    if (req?.user?.role != userRole.admin)
-      return res.status(403).send({ message: "Unauthorized request" });
+    // if (req?.user?.role != userRole.admin)
+    //   return res.status(403).send({ message: "Unauthorized request" });
 
     if (req.body?.propertyImages && req.body.propertyImages?.length > 0) {
       const existingProperty = await PropertyModel.findById(req.body._id);
 
-      let response = false;
+      let response = true;
 
       if (
         existingProperty?.propertyImages &&
@@ -129,8 +131,8 @@ exports.editProperty = async (req, res, next) => {
 exports.deleteByPropertyId = async (req, res, next) => {
   const { id } = req.params;
   try {
-    if (req?.user?.role != userRole.admin)
-      return res.status(403).send({ message: "Unauthorized request" });
+    // if (req?.user?.role != userRole.admin)
+    //   return res.status(403).send({ message: "Unauthorized request" });
 
     const deletedProperty = await PropertyModel.findByIdAndDelete(id);
 
@@ -143,7 +145,7 @@ exports.deleteByPropertyId = async (req, res, next) => {
 
     res.status(200).send({ message: "Property deleted successfully" });
   } catch (error) {
-    res.status(400).send("Failed to delete: " + error.message);
+    res.status(400).send({ message: "Failed to delete: " + error.message });
   }
 };
 
@@ -157,22 +159,26 @@ exports.getPropertyById = async (req, res, next) => {
 
     res.status(200).send(fetchedProperty);
   } catch (error) {
-    res.status(400).send("Failed to delete: " + error.message);
+    res.status(400).send({ message: "Failed to delete: " + error.message });
   }
 };
 
 exports.searchProperty = async (req, res) => {
   const {
-    address = null,
-    type = null,
-    city = null,
-    district = null,
-    maxPrice = null,
-    minPrice = null,
-    region = null,
     page = null,
     count = null,
-  } = req.query;
+    typeOfProperty = null,
+    minPrice = null,
+    maxPrice = null,
+    city = null,
+    district = null,
+    pinCode = null,
+    status = null,
+    region = null,
+    price = null,
+    propertyAge = null,
+    propertyViews = null,
+  } = req.body;
 
   try {
     const pageNo = parseInt(page) || 1;
@@ -182,12 +188,16 @@ exports.searchProperty = async (req, res) => {
 
     const query = {};
 
-    if (type) {
-      query.typeOfProperty = { $regex: new RegExp(type, "i") };
+    if (typeOfProperty) {
+      query.typeOfProperty = { $regex: new RegExp(typeOfProperty, "i") };
     }
 
-    if (address) {
-      query.address = { $regex: new RegExp(address, "i") };
+    if (status) {
+      query.status = { $regex: new RegExp(status, "i") };
+    }
+
+    if (pinCode) {
+      query.pinCode = { $regex: new RegExp(pinCode, "i") };
     }
 
     if (city) {
@@ -226,7 +236,7 @@ exports.searchProperty = async (req, res) => {
       numberOfPages: Math.ceil(totalCount / limit),
     });
   } catch (error) {
-    res.status(400).send("Error: " + error.message);
+    res.status(400).send({ message: "Error: " + error.message });
   }
 };
 
@@ -267,6 +277,8 @@ const createPropertyImage = (imagesArray, pathArray) => {
 const deletePropertyImages = async (imagesArray) => {
   const curPath = path.resolve(__dirname);
   const rootPath = path.join(curPath, "../../");
+
+  console.log(imagesArray);
 
   for (let i = 0; i < imagesArray.length; i++) {
     fs.unlink(rootPath + imagesArray[i], function (err) {

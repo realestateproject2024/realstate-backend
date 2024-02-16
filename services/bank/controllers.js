@@ -1,4 +1,5 @@
 const BankModel = require("./bankModel");
+const fs = require("fs");
 
 exports.getAllBanks = async (req, res) => {
   const { page = 1, count = 15 } = req.query;
@@ -35,7 +36,15 @@ exports.getBankById = async (req, res) => {
 };
 
 exports.createNewBank = async (req, res) => {
-  const { name, phone, email, branchCode, iban, swiftNumber } = req.body;
+  const {
+    name,
+    phone,
+    email,
+    branchCode,
+    iban,
+    swiftNumber,
+    image = null,
+  } = req.body;
 
   try {
     const existingUser = await BankModel.findOne({
@@ -55,7 +64,46 @@ exports.createNewBank = async (req, res) => {
           "Bank already exist with the above fileds. Please check all fields properly",
       });
     } else {
-      const newBank = new BankModel(req.body);
+      let data = req.body;
+      if (image != null) {
+        let dir = "files/";
+
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir);
+        }
+
+        dir = "files/bank/";
+
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir);
+        }
+
+        const img = image.replace(/^[^,]+,/, "");
+
+        const imageToUpload =
+          Math.round(Math.random() * 10000).toString() +
+          "_" +
+          Date.now() +
+          ".jpg";
+
+        fs.writeFile(
+          dir + imageToUpload,
+          img,
+          { encoding: "base64" },
+          (error) => {
+            if (error) {
+              res.status(404).send({
+                message: `Error in uploading image: ${error.message}`,
+              });
+              return;
+            }
+          }
+        );
+
+        data = { ...data, image: dir + imageToUpload };
+      }
+
+      const newBank = new BankModel(data);
 
       await newBank.save();
       res.status(201).json(newBank);
@@ -66,15 +114,66 @@ exports.createNewBank = async (req, res) => {
 };
 
 exports.updateBankById = async (req, res) => {
-  const { id } = req.params;
-  const data = req.body;
+  const { image = null, ...data } = req.body;
 
   try {
-    const updateBank = await BankModel.findByIdAndUpdate(id, data, {
-      new: true,
-    });
+    let reqBody = data;
+    if (image != null) {
+      const imageToUpload =
+        Math.round(Math.random() * 10000).toString() +
+        "_" +
+        Date.now() +
+        ".jpg";
 
-    res.status(200).json(updateBank);
+      const dir = "files/bank/";
+
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir);
+      }
+
+      const img = image.replace(/^[^,]+,/, "");
+
+      fs.writeFile(
+        dir + imageToUpload,
+        img,
+        { encoding: "base64" },
+        (error) => {
+          if (error) {
+            console.log(error.message);
+            reqBody.status = 404;
+          }
+        }
+      );
+
+      reqBody = {
+        ...data,
+        image: dir + imageToUpload,
+      };
+
+      const existingBank = await BankModel.findById(data?._id);
+
+      if (existingBank?.image) {
+        fs.unlink(existingBank.image, function (err) {
+          if (err) {
+            reqBody.status = 404;
+          }
+        });
+      }
+    }
+
+    if (reqBody.status === 404) {
+      reqBody = {
+        message: "Failed to upload image",
+        status: reqBody.status,
+      };
+      res.status(404).json(reqBody);
+    } else {
+      const updateBank = await BankModel.findByIdAndUpdate(data._id, reqBody, {
+        new: true,
+      });
+
+      res.status(200).json(updateBank);
+    }
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -83,9 +182,21 @@ exports.updateBankById = async (req, res) => {
 exports.deleteBankById = async (req, res) => {
   const { id } = req.params;
   try {
+    let response = { message: "Bank deleted successfully", status: 200 };
+    const existingBank = await BankModel.findById(id);
+
+    if (existingBank?.image) {
+      fs.unlink(existingBank.image, function (err) {
+        if (err) {
+          response.status = 404;
+          response.message = "Failed to delete data";
+        }
+      });
+    }
+
     await BankModel.findByIdAndDelete(id);
 
-    res.status(200).json({ message: "Bank deleted successfully" });
+    res.status(200).json(response);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

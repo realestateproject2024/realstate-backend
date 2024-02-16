@@ -47,7 +47,7 @@ const propertySchema = new mongoose.Schema(
     status: {
       type: String,
       enum: [
-        propertyStatus.available,
+        propertyStatus.pending,
         propertyStatus.available,
         propertyStatus.sold,
         propertyStatus.hold,
@@ -168,7 +168,6 @@ const propertySchema = new mongoose.Schema(
     },
     propertyfeatured: {
       type: Boolean,
-      required: true,
       default: false,
       trim: true,
     },

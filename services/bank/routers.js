@@ -11,11 +11,11 @@ const {
 
 const router = express.Router();
 
-router.route("/").get(getAllBanks).post(createNewBank);
+router.route("/").get(getAllBanks).post(createNewBank).patch(updateBankById);
 router
   .route("/:id")
   .get(getBankById)
-  .patch(updateBankById)
+
   .delete(deleteBankById);
 
 module.exports = router;

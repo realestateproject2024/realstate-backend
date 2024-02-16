@@ -9,6 +9,10 @@ const {
   deleteUserById,
   verifyOtp,
   loginUser,
+  createUserObligations,
+  editUserOblicationById,
+  getUserOblicationByUserId,
+  deleteUserOblicationById,
 } = require("./controllers");
 
 router.route("/signUp").post(signUp);
@@ -22,5 +26,9 @@ router
   .patch(updateUserById)
   .get(getUserById)
   .delete(deleteUserById);
+
+router.route("/").patch(editUserOblicationById).post(createUserObligations);
+router.route("/:userId").get(getUserOblicationByUserId);
+router.route("/:id").patch(deleteUserOblicationById);
 
 module.exports = router;

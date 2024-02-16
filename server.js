@@ -1,15 +1,16 @@
 const express = require("express");
+const cors = require("cors");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
-const cors = require("cors");
+dotenv.config();
 
 const app = express();
-dotenv.config();
+app.use(cors());
 app.use(express.json({ limit: "30mb", extended: true }));
 app.use(express.urlencoded({ limit: "30mb", extended: true }));
-app.use(cors());
 
-app.use("/user", require("./services/user/routers"));
+app.use("/user", require("./services/user/userRouters"));
+app.use("/userObligations", require("./services/user/obligationRoutes"));
 app.use("/property", require("./services/property/routers"));
 app.use("/admin", require("./services/admin/routers"));
 app.use("/bank", require("./services/bank/routers"));

@@ -37,6 +37,11 @@ const userSchema = new mongoose.Schema(
       required: false,
       trim: true,
     },
+    employmentGrade: {
+      type: String,
+      required: false,
+      trim: true,
+    },
     employerName: {
       type: String,
       required: false,

@@ -25,6 +25,6 @@ const router = express.Router();
 
 router.route("/").get(getAllProperty).post(createProperty).patch(editProperty);
 router.route("/:id").delete(deleteByPropertyId).get(getPropertyById);
-router.route("/search/").get(searchProperty);
+router.route("/search/").post(searchProperty);
 
 module.exports = router;

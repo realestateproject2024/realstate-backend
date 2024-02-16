@@ -62,6 +62,11 @@ const bankSchema = new mongoose.Schema(
       required: false,
       trim: true,
     },
+    image: {
+      type: String,
+      required: false,
+      trim: true,
+    },
   },
   { timestamps: true }
 );
