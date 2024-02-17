@@ -11,8 +11,16 @@ const propertySchema = new mongoose.Schema(
   {
     typeOfProperty: {
       type: String,
-      enum: [propertyType.commercial, propertyType.residential],
-      default: propertyType.residential,
+      required: true,
+      trim: true,
+    },
+    commercial: {
+      type: Boolean,
+      default: false,
+    },
+    residnetial: {
+      type: Boolean,
+      default: false,
     },
     propertyTitle: {
       type: String,
