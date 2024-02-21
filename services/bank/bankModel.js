@@ -1,8 +1,5 @@
 const mongoose = require("mongoose");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
 
-const { userRole } = require("../../helpers/constants/localConsts");
 const { dbNames } = require("../../helpers/constants/dbName");
 
 const bankSchema = new mongoose.Schema(

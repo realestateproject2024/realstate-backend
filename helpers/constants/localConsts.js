@@ -13,6 +13,23 @@ exports.propertyStatus = {
 };
 
 exports.propertyType = {
-  commercial: "commercial",
-  residential: "residential",
+  villa: "villa",
+  flat: "flat",
+  floor: "floor",
+  building: "building",
+};
+
+exports.priority = {
+  low: "low",
+  medium: "medium",
+  high: "high",
+  veryHigh: "veryHigh",
+};
+
+exports.taskStatus = {
+  created: "created",
+  pending: "pending",
+  hold: "hold",
+  terminated: "terminated",
+  finished: "finished",
 };

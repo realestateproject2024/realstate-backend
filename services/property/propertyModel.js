@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
 
 const { dbNames } = require("../../helpers/constants/dbName");
 const {
@@ -11,6 +10,16 @@ const propertySchema = new mongoose.Schema(
   {
     typeOfProperty: {
       type: String,
+      enum: [
+        propertyType.villa,
+        propertyType.floor,
+        propertyType.flat,
+        propertyType.building,
+      ],
+      default: propertyType.flat,
+    },
+    propertyTitle: {
+      type: String,
       required: true,
       trim: true,
     },
@@ -21,11 +30,6 @@ const propertySchema = new mongoose.Schema(
     residnetial: {
       type: Boolean,
       default: false,
-    },
-    propertyTitle: {
-      type: String,
-      required: true,
-      trim: true,
     },
     price: {
       type: Number,

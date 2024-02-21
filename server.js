@@ -9,17 +9,19 @@ app.use(cors());
 app.use(express.json({ limit: "30mb", extended: true }));
 app.use(express.urlencoded({ limit: "30mb", extended: true }));
 
-app.use("/user", require("./services/user/userRouters"));
-app.use("/userObligations", require("./services/user/obligationRoutes"));
-app.use("/property", require("./services/property/routers"));
-app.use("/admin", require("./services/admin/routers"));
-app.use("/bank", require("./services/bank/routers"));
+//import routes here
+const combineRouters = require("./services/combinedRouters");
+
+app.use("/", combineRouters);
+
+// app.use("/enquiry", require("./services/enquiry/routers"));
+
 
 app.use("/files/property", express.static("files/property"));
 
-app.use("/", (req, res) => {
-  res.send("Backend server is running.");
-});
+// app.use("/", (req, res) => {
+//   res.send("Backend server is running.");
+// });
 
 const PORT = process.env.PORT || 3001;
 
