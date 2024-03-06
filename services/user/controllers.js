@@ -1,6 +1,5 @@
 const UserModel = require("./userModel");
 const OTPModel = require("./otpModel");
-const UserObligation = require("./userObligationModel");
 
 exports.signUp = async (req, res, next) => {
   const { phone, email } = req.body;
@@ -97,6 +96,31 @@ exports.createNewUser = async (req, res) => {
   const { phone, email } = req.body;
 
   try {
+    const payload = {
+      name: req.body.name,
+      dob: req.body.dob,
+      phone: req.body.phone,
+      email: req.body.email,
+      password: req.body.password,
+      employmentType: req.body.employmentType,
+      employmentGrade: req.body.employmentGrade,
+      employerName: req.body.employerName,
+      dateOfJoiing: req.body.dateOfJoiing,
+      basicSalary: req.body.basicSalary,
+      totalSalary: req.body.totalSalary,
+      financerName: req.body.financerName,
+      instalmentType: req.body.instalmentType,
+      amount: req.body.amount,
+      emisPaid: req.body.emisPaid,
+    };
+
+    payload.dob = new Date(payload.dob);
+    payload.dateOfJoiing = new Date(payload.dateOfJoiing);
+    payload.amount = parseInt(payload.amount, 10);
+    payload.emisPaid = parseInt(payload.emisPaid, 10);
+    payload.basicSalary = parseInt(payload.basicSalary, 10);
+    payload.totalSalary = parseInt(payload.totalSalary, 10);
+
     const existingUser = await UserModel.findOne({
       $or: [{ phone }, { email }],
     });
@@ -105,7 +129,7 @@ exports.createNewUser = async (req, res) => {
     if (existingUser != null) {
       return res.status(403).json({ message: "User already exist" });
     } else {
-      const newUser = new UserModel(req.body);
+      const newUser = new UserModel(payload);
 
       await newUser.save();
 
@@ -147,48 +171,21 @@ exports.deleteUserById = async (req, res) => {
   }
 };
 
-exports.createUserObligations = async (req, res) => {
+exports.getAllUsers = async (req, res) => {
   try {
-    const userObligation = new UserObligation(req.body);
+    const allUsers = await UserModel.find();
 
-    await userObligation.save();
-    res.status(201).json(userObligation);
+    res.status(200).json(allUsers);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
 
-exports.getUserOblicationByUserId = async (req, res) => {
-  const { userId } = req.params;
+exports.deleteUserById = async (req, res) => {
   try {
-    const userObligation = await UserObligation.find({ userId });
-    res.status(200).json(userObligation);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
+    await UserModel.findByIdAndDelete(req.query.id);
 
-exports.editUserOblicationById = async (req, res) => {
-  const data = req.body;
-  try {
-    const userObligation = await UserObligation.findByIdAndUpdate(
-      data._id,
-      data,
-      {
-        new: true,
-      }
-    );
-    res.status(200).json(userObligation);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
-
-exports.deleteUserOblicationById = async (req, res) => {
-  const { id } = req.params;
-  try {
-    await UserObligation.findByIdAndDelete(id);
-    res.status(200).json({ message: "User Obligation deleted successfully" });
+    res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

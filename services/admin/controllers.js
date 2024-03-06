@@ -1,8 +1,4 @@
-var jwt = require("jsonwebtoken");
-
 const AdminModel = require("./adminModel");
-
-const { secretKeys } = require("../../helpers/constants/dbName");
 
 exports.createUser = async (req, res, next) => {
   try {
@@ -19,10 +15,10 @@ exports.createUser = async (req, res, next) => {
     res.status(200).json({
       user: user,
       token: user.generateJWT(),
-      message: "Admin created successfully",
+      message: "Data created successfully",
     });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ message: error.message });
   }
 };
 
@@ -53,6 +49,26 @@ exports.login = async (req, res, next) => {
 
     res.status(200).json(result);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const userList = await AdminModel.find();
+
+    res.status(200).json(userList);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.deleteUserById = async (req, res) => {
+  try {
+    await AdminModel.findByIdAndDelete(req.query.id);
+
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 };

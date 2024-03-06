@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
-const { userRole } = require("../../helpers/constants/localConsts");
+const { userRole, activeStatus } = require("../../helpers/constants/localConsts");
 const { dbNames } = require("../../helpers/constants/dbName");
 
 const adminSchema = new mongoose.Schema(
@@ -22,9 +22,14 @@ const adminSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    status: {
+      type: String,
+      enum: [activeStatus.active, activeStatus.inActive, activeStatus.inTask],
+      default: activeStatus.active,
+    },
     role: {
       type: String,
-      enum: [userRole.admin, userRole.executive],
+      enum: [userRole.admin, userRole.executive, userRole.supervisor],
       default: userRole.executive,
     },
   },

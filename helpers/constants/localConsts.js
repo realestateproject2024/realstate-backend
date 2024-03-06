@@ -2,6 +2,7 @@ exports.userRole = {
   user: "user",
   admin: "admin",
   executive: "executive",
+  supervisor: "supervisor",
 };
 
 exports.propertyStatus = {
@@ -26,10 +27,21 @@ exports.priority = {
   veryHigh: "veryHigh",
 };
 
+exports.employment = {
+  private: "private",
+  police: "police",
+};
+
 exports.taskStatus = {
   created: "created",
   pending: "pending",
   hold: "hold",
   terminated: "terminated",
   finished: "finished",
+};
+
+exports.activeStatus = {
+  active: "active",
+  inActive: "inActive",
+  inTask: "inTask",
 };

@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
-const { userRole } = require("../../helpers/constants/localConsts");
+const { userRole, employment } = require("../../helpers/constants/localConsts");
 const { dbNames } = require("../../helpers/constants/dbName");
 
 const userSchema = new mongoose.Schema(
@@ -33,9 +33,11 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
     employmentType: {
-      type: String,
-      required: false,
-      trim: true,
+      status: {
+        type: String,
+        enum: [employment.private, employment.police],
+        required: false,
+      },
     },
     employmentGrade: {
       type: String,
@@ -48,17 +50,17 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
     dateOfJoiing: {
-      type: String,
+      type: Date,
       required: false,
       trim: true,
     },
     basicSalary: {
-      type: String,
+      type: Number,
       required: false,
       trim: true,
     },
     totalSalary: {
-      type: String,
+      type: Number,
       required: false,
       trim: true,
     },
@@ -66,6 +68,26 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: userRole.user,
       required: true,
+    },
+    financerName: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    instalmentType: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    amount: {
+      type: Number,
+      required: false,
+      trim: true,
+    },
+    emisPaid: {
+      type: Number,
+      required: false,
+      trim: true,
     },
   },
   { timestamps: true }

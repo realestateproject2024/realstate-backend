@@ -15,7 +15,6 @@ router.route("/").get(getAllBanks).post(createNewBank).patch(updateBankById);
 router
   .route("/:id")
   .get(getBankById)
-
   .delete(deleteBankById);
 
 module.exports = router;
