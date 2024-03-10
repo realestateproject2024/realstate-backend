@@ -17,6 +17,8 @@ exports.getAllProperty = async (req, res) => {
       .limit(limit)
       .skip(startIndex);
 
+      console.log(propertyList)
+
     res.status(200).send({
       data: propertyList,
       currentPage: Number(page),
@@ -36,6 +38,8 @@ exports.createProperty = async (req, res, next) => {
     // if (req?.user?.role != userRole.admin)
     //   res.status(403).send({ message: "Unauthorized request" });
 
+    
+
     let imagePathArray = [];
     let response = createPropertyImage(propertyImages, imagePathArray);
 
@@ -48,7 +52,7 @@ exports.createProperty = async (req, res, next) => {
       response = new PropertyModel(response);
       await response.save();
 
-      res.status(200).send(response);
+      res.status(201).send(response);
     } else {
       res
         .status(404)

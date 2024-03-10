@@ -9,6 +9,9 @@ const {
   getPropertyById,
 } = require("./controllers");
 const { requireSignin } = require("../../helpers/middlewares/accessHandles");
+const {
+  castTypesMiddlewareProperty,
+} = require("../../helpers/middlewares/FieldTypeHandlers");
 
 const router = express.Router();
 
@@ -23,7 +26,11 @@ const router = express.Router();
 //   .get(getPropertyById);
 // router.route("/search/").get(searchProperty);
 
-router.route("/").get(getAllProperty).post(createProperty).patch(editProperty);
+router
+  .route("/")
+  .get(getAllProperty)
+  .post(castTypesMiddlewareProperty, createProperty)
+  .patch(editProperty);
 router.route("/:id").delete(deleteByPropertyId).get(getPropertyById);
 router.route("/search/").post(searchProperty);
 
