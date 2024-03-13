@@ -23,6 +23,7 @@ const castTypesMiddlewareProperty = (req, res, next) => {
 
   // Convert string number values to actual number
   const numberFields = [
+    "yearOfBuild",
     "price",
     "bedRooms",
     "kitchen",
@@ -38,7 +39,6 @@ const castTypesMiddlewareProperty = (req, res, next) => {
 
   // Convert string date values to actual date
   const dateFields = [
-    "yearOfBuild",
     "propertyDateAdded",
     "propertyLastUpdate",
     "lastRepairing",

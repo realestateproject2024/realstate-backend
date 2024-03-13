@@ -12,20 +12,16 @@ const propertySchema = new mongoose.Schema(
       type: String,
       enum: [
         propertyType.villa,
-        propertyType.floor,
-        propertyType.flat,
         propertyType.building,
+        propertyType.apartment,
+        propertyType.house,
       ],
-      default: propertyType.flat,
+      default: propertyType.house,
     },
     propertyTitle: {
       type: String,
       required: true,
       trim: true,
-    },
-    commercial: {
-      type: Boolean,
-      default: false,
     },
     residnetial: {
       type: Boolean,
@@ -73,7 +69,7 @@ const propertySchema = new mongoose.Schema(
       trim: true,
     },
     yearOfBuild: {
-      type: Date,
+      type: Number,
       required: false,
       trim: true,
     },

@@ -15,9 +15,9 @@ exports.propertyStatus = {
 
 exports.propertyType = {
   villa: "villa",
-  flat: "flat",
-  floor: "floor",
   building: "building",
+  apartment: "apartment",
+  house: "house",
 };
 
 exports.priority = {
